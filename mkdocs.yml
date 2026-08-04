@@ -1,0 +1,59 @@
+site_name: Métodos Computacionales Modernos para la Física
+site_url: https://selimibn.github.io/mcmp
+site_author: Dr. Selim Gómez Ávila
+
+theme:
+  name: material
+  language: es
+  palette:
+    # Paleta cálida (Arena / Naranja Tostado)
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep orange
+      accent: deep orange
+      toggle:
+        icon: material/weather-night
+        name: Cambiar a modo oscuro
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep orange
+      accent: deep orange
+      toggle:
+        icon: material/weather-sunny
+        name: Cambiar a modo claro
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - content.code.copy
+
+# Soporte de Matemáticas (LaTeX)
+markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+# Menú de Navegación del Curso
+nav:
+  - Inicio:
+    - Mapa del curso: index.md
+    - Proyecto: projevol.md
+    - Presentación: pres.md
+  - Módulo I - ISI: 
+    - Introducción: modulo1/modulo1.md
+    - Práctica Git: modulo1/git_practica.md
+  - Módulo II - HPC:
+    - Introducción: modulo2/modulo2.md
+    - Numba: modulo2/numba_mpi.md
+  - Módulo III - Inferencia:
+    - Introducción: modulo3/modulo3.md
+  - Módulo IV - ML:
+    - Introducción: modulo4/modulo4.md    
+  - Tareas y Proyectos:
+    - Entregas: tareas/tarea1.md
+    - Proyecto Final: tareas/proyecto_final.md
+
+
+

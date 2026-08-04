@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCMP - Dr. Selim Gómez Ávila</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+/* ==========================================
+   1. CORE PRESENTATION ENGINE (PAGINACIÓN)
+   ========================================== */
+:root {
+  --bg-primary: #fffbf0;
+  --bg-secondary: #f4efe1;
+  --text-main: #2c3e50;
+  --text-light: #5d6d7e;
+  --accent: #d35400;
+  --accent-soft: rgba(211, 84, 0, 0.1);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background-color: #1a1a1a; /* Fondo oscuro exterior tipo proyector */
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  overflow: hidden;
+  font-family: 'Lato', sans-serif;
+}
+
+/* El contenedor principal ahora funciona como el viewport de las láminas */
+.presentation-viewport {
+  position: relative;
+  width: 1280px;
+  height: 720px;
+  overflow: hidden;
+}
+
+/* Ocultar todas las diapositivas por defecto */
+.slide-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1280px;
+  height: 720px;
+  padding: 60px;
+  background-color: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 1;
+}
+
+/* Mostrar únicamente la diapositiva activa */
+.slide-container.active {
+  opacity: 1;
+  visibility: visible;
+  z-index: 2;
+}
+
+/* Fondo decorativo abstracto */
+.slide-container::before {
+  content: '';
+  position: absolute;
+  top: -100px;
+  right: -100px;
+  width: 400px;
+  height: 400px;
+  background: var(--accent-soft);
+  border-radius: 50%;
+  z-index: 0;
+}
+
+.slide-container::after {
+  content: '';
+  position: absolute;
+  bottom: 20px;
+  left: 60px;
+  width: 100px;
+  height: 4px;
+  background: var(--accent);
+  z-index: 0;
+}
+
+.slide-container > * { position: relative; z-index: 1; }
+
+/* ==========================================
+   2. CONTROLES DE NAVEGACIÓN OVERLAY
+   ========================================== */
+.nav-controls {
+  position: absolute;
+  bottom: 20px;
+  right: 30px;
+  z-index: 100; /* Siempre encima de las láminas */
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: rgba(255, 251, 240, 0.85);
+  padding: 8px 15px;
+  border-radius: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.nav-btn {
+  background: none;
+  border: none;
+  color: var(--text-main);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 5px 10px;
+  transition: color 0.2s;
+}
+
+.nav-btn:hover { color: var(--accent); }
+.slide-counter { font-size: 14px; font-weight: bold; color: var(--text-light); min-width: 50px; text-align: center; }
+
+/* ==========================================
+   3. ESTILOS DE CONTENIDO Y TIPOGRAFÍA
+   ========================================== */
+h1, h2, h3 { font-family: 'Merriweather', serif; color: var(--text-main); margin: 0; }
+h1 { font-size: 64px; line-height: 1.1; }
+.slide-title { font-size: 42px; margin-bottom: 40px; border-left: 6px solid var(--accent); padding-left: 20px; }
+p, li { font-size: 22px; color: var(--text-light); line-height: 1.6; }
+.subtitle { font-size: 28px; color: var(--accent); font-weight: 700; margin-top: 10px; }
+
+.content-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+.two-column { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center; }
+.tiled-content { display: flex; gap: 30px; width: 100%; }
+.tile { flex: 1; background: var(--bg-secondary); border: 1px solid #e5e8e8; border-radius: 12px; padding: 30px; text-align: center; }
+.tile .icon { font-size: 48px; color: var(--accent); margin-bottom: 20px; }
+.tile h3 { font-size: 24px; margin-bottom: 15px; color: var(--accent); }
+
+table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 8px; overflow: hidden; }
+th { background: var(--text-main); color: white; padding: 20px; text-align: left; font-size: 22px; }
+td { padding: 18px 20px; border-bottom: 1px solid #eee; font-size: 20px; color: var(--text-main); }
+
+.image-wrapper { border-radius: 12px; overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.1); height: 100%; }
+.image-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+
+#formula-container { background: white; padding: 40px; border-radius: 15px; border: 2px solid var(--bg-secondary); margin: 20px 0; display: flex; justify-content: center; }
+
+.timeline-container { display: flex; justify-content: space-between; position: relative; margin-top: 80px; }
+.timeline-container::before { content: ''; position: absolute; top: 40px; left: 0; width: 100%; height: 4px; background: var(--bg-secondary); z-index: 0; }
+.timeline-node { width: 23%; position: relative; text-align: center; z-index: 1; }
+.node-dot { width: 24px; height: 24px; background: var(--accent); border-radius: 50%; margin: 30px auto; border: 4px solid var(--bg-primary); }
+.timeline-node h4 { color: var(--accent); margin-bottom: 10px; font-family: 'Merriweather'; }
+.timeline-node p { font-size: 16px; line-height: 1.4; }
+.ref-badge { background-color: #F4EFE1; border-left: 4px solid #D35400; padding: 15px; margin-top: 25px; border-radius: 0 8px 8px 0; text-align: left;}
+.ref-badge p { margin: 0; font-size: 16px; color: #2C3E50; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+<div class="presentation-viewport">
+
+    <!-- CONTROLES COMUNES INTERNOS -->
+    <div class="nav-controls">
+        <button class="nav-btn" onclick="slideAnterior()"><i class="fa-solid fa-chevron-left"></i></button>
+        <span class="slide-counter" id="contador-laminas">1 / 14</span>
+        <button class="nav-btn" onclick="slideSiguiente()"><i class="fa-solid fa-chevron-right"></i></button>
+        <button class="nav-btn" onclick="alternarPantallaCompleta()" title="Pantalla completa (Teclado: F)"><i class="fa-solid fa-expand"></i></button>
+    </div>
+
+    <!-- Diapositiva 1: Portada -->
+    <div class="slide-container active">
+        <div class="content-area" style="text-align: center;">
+            <h1>Métodos Computacionales<br>Modernos para la Física</h1>
+            <div class="subtitle">Ingeniería de Software de Investigación e Inferencia Científica</div>
+            <div style="margin-top: 60px;">
+                <p style="font-weight: 700; color: var(--text-main); font-size: 32px; margin-bottom: 5px;">Dr. Selim Gómez Ávila</p>
+                <p style="font-family: monospace; font-size: 20px; color: var(--accent);">selim_gomez@uaeh.edu.mx</p>
+                <p style="font-size: 18px; letter-spacing: 2px; text-transform: uppercase; margin-top: 20px;">Universidad Autónoma del Estado de Hidalgo</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diapositiva 2: El Espíritu del Curso -->
+    <div class="slide-container">
+        <h2 class="slide-title">El Espíritu del Curso</h2>
+        <div class="content-area">
+            <div class="two-column">
+                <div>
+                    <p style="font-size: 26px; color: var(--text-main); font-weight: 700;">Cerrando la Brecha entre Física e Ingeniería</p>
+                    <p>Este curso va mucho más allá de simplemente "escribir código". Su objetivo es adoptar la mentalidad de un <strong>Ingeniero de Software de Investigación (RSE)</strong>:</p>
+                    <ul style="margin-top: 20px;">
+                        <li><strong>Reproducibilidad:</strong> Garantizar que tus resultados científicos puedan ser verificados de forma independiente.</li>
+                        <li><strong>Sustentabilidad:</strong> Diseñar código modular que sobreviva más allá de una sola publicación.</li>
+                        <li><strong>Rendimiento:</strong> Extraer el máximo potencial del hardware moderno.</li>
+                    </ul>
+                </div>
+                <div class="image-wrapper" style="height: 400px;">
+                    <img src="http://googleusercontent.com/image_collection/image_retrieval/2343044889454370507" alt="Laboratorio de cómputo para investigación">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diapositiva 3: ¿Qué hace a un buen físico programmer? -->
+    <div class="slide-container">
+        <h2 class="slide-title">¿Qué Hace a un Buen Físico Programador?</h2>
+        <div class="content-area">
+            <div class="two-column">
+                <div class="tile" style="text-align: left; background: #fdf2e9;">
+                    <h3 style="color: #e67e22;"><i class="fa-solid fa-circle-xmark"></i> El Enfoque "Típico"</h3>
+                    <ul style="font-size: 18px; padding-left: 20px;">
+                        <li>Scripts monolíticos desordenados de miles de líneas.</li>
+                        <li>Control de versiones manual (<code>codigo_v1_final_v2.py</code>).</li>
+                        <li>Valores y rutas de archivos harcodeadas localmente.</li>
+                        <li>Código que solo funciona una vez en tu propia máquina.</li>
+                    </ul>
+                </div>
+                <div class="tile" style="text-align: left; background: #e9f7ef;">
+                    <h3 style="color: #27ae60;"><i class="fa-solid fa-circle-check"></i> El Enfoque del Curso (MCMP)</h3>
+                    <ul style="font-size: 18px; padding-left: 20px;">
+                        <li><strong>Diseño Modular:</strong> Lógica de la física acoplada limpiamente.</li>
+                        <li><strong>Flujo Git Profesional:</strong> Ramas limpias organizadas por características.</li>
+                        <li><strong>Portabilidad Absoluta:</strong> Entornos virtuales reproducibles (Conda).</li>
+                        <li><strong>Optimización Real:</strong> Uso de profiling matemático antes de compilar.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diapositiva 4: Resultados de Aprendizaje -->
+    <div class="slide-container">
+        <h2 class="slide-title">Resultados de Aprendizaje</h2>
+        <div class="content-area">
+            <div class="tiled-content">
+                <div class="tile">
+                    <div class="icon"><i class="fa-solid fa-microchip"></i></div>
+                    <h3>Desempeño</h3>
+                    <p>Implementar algoritmos paralelos en arquitecturas multinúcleo y optimizar funciones matemáticas complejas.</p>
+                </div>
+                <div class="tile">
+                    <div class="icon"><i class="fa-solid fa-code-merge"></i></div>
+                    <h3>Ingeniería</h3>
+                    <p>Desarrollar paquetes científicos modulares, estructurados, con control de versiones y pruebas unitarias.</p>
+                </div>
+                <div class="tile">
+                    <div class="icon"><i class="fa-solid fa-chart-line"></i></div>
+                    <h3>Inferencia</h3>
+                    <p>Realizar estimación de parámetros bayesianos y construir simulaciones robustas empleando MCMC.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diapositiva 5: Módulo I -->
+    <div class="slide-container">
+        <h2 class="slide-title">Módulo I: Research Software Engineering</h2>
+        <div class="content-area">
+            <div class="two-column">
+                <div>
+                    <h3>Semanas 1–2: Cimientos de Desarrollo</h3>
+                    <p>Transición crítica del desarrollo artesanal al desarrollo de software científico modular y colaborativo.</p>
+                    <ul style="margin-top: 15px; font-size: 20px;">
+                        <li><strong>Control de Versiones:</strong> Ramificación en Git y gestión en GitHub.</li>
+                        <li><strong>Verificación:</strong> Pruebas unitarias para asegurar estabilidad matemática.</li>
+                        <li><strong>CI/CD:</strong> Automatización de pruebas de software en la nube.</li>
+                    </ul>
+                    <div class="ref-badge">
+                        <p><strong>Referencia:</strong> Wilson, G. et al. (2014). <em>Best Practices for Scientific Computing</em>. PLOS Biology.</p>
+                    </div>
+                </div>
+                <div class="image-wrapper" style="height: 380px;">
+                    <img src="http://googleusercontent.com/image_collection/image_retrieval/12226806547591380263" alt="Flujo de trabajo de ingeniería de software">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diapositiva 6: Módulo II -->
+    <div class="slide-container">
+        <h2 class="slide-title">Módulo II: High-Performance Foundations</h2>
+        <div class="content-area">
+            <div class="two-column">
+                <div class="image-wrapper" style="height: 400px;">
+                    <img src="http://googleusercontent.com/image_collection/image_retrieval/14398230516167037028" alt="Servidores de HPC">
+                </div>
+                <div>
+                    <h3>Semanas 3–6: Velocidad y Escala</h3>
+                    <ul style="font-size: 20px;">
+                        <li><strong>Profiling:</strong> Medición precisa de cuellos de botella con <code>cProfile</code>.</li>
+                        <li><strong>Vectorización:</strong> Uso correcto del layout de memoria en NumPy.</li>
+                        <li><strong>JIT Compilation:</strong> Compilación a lenguaje máquina nativo vía <strong>Numba</strong>.</li>
+                        <li><strong>Paralelismo distribuido:</strong> Message Passing Interface (MPI) con mpi4py.</li>
+                    </ul>
+                    <div class="ref-badge">
+                        <p><strong>Referencia:</strong> Gorelick, M., & Ozsvald, I. (2020). <em>High Performance Python</em> (2nd Ed.).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diapositiva 7: Módulo III -->
+    <div class="slide-container">
+        <h2 class="slide-title">Módulo III: Inferencia Bayesiana</h2>
+        <div class="content-area">
+            <p style="text-align: center; font-weight: bold;">Conexión entre Modelos Físicos de Frontera y Datos Observacionales</p>
+            <div id="formula-container">
+                <math xmlns="http://www.w3.org/1998/Math/MathML" display="block" style="font-size: 32px;">
+                    <mi>P</mi>
+                    <mo stretchy="false">(</mo>
+                    <mi>&#x03B8;</mi>
+                    <mo stretchy="false">|</mo>
+                    <mi>D</mi>
+                    <mo stretchy="false">)</mo>
+                    <mo>=</mo>
+                    <mfrac>
+                        <mrow>
+                            <mi>P</mi>
+                            <mo stretchy="false">(</mo>
+                            <mi>D</mi>
+                            <mo stretchy="false">|</mo>
+                            <mi>&#x03B8;</mi>
+                            <mo stretchy="false">)</mo>
+                            <mi>P</mi>
+                            <mo stretchy="false">(</mo>
+                            <mi>&#x03B8;</mi>
+                            <mo stretchy="false">)</mo>
+                        </mrow>
+                        <mrow>
+                            <mi>P</mi>
+                            <mo stretchy="false">(</mo>
+                            <mi>D</mi>
+                            <mo stretchy="false">)</mo>
+                        </mrow>
+                    </mfrac>
+                </math>
+            </div>
+            <div class="tiled-content" style="margin-top: 10px;">
+                <div class="tile"><h3>Muestreo MCMC</h3><p style="font-size: 16px;">Exploración de verosimilitudes multidimensionales con <code>emcee</code>.</p></div>
+                <div class="tile"><h3>Procesos Gaussianos</h3><p style="font-size: 16px;">Creación de emuladores acelerados para simulaciones costosas.</p></div>
+            </div>
+            <div class="ref-badge" style="margin-top: 15px;">
+                <p><strong>Referencia:</strong> Sivia, D. S., & Skilling, J. (2006). <em>Data Analysis: A Bayesian Tutorial</em>.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diapositiva 8: Módulo IV -->
+    <div class="slide-container">
+        <h2 class="slide-title">Módulo IV: Aprendizaje Automático Científico</h2>
+        <div class="content-area">
+            <div class="two-column">
+                <div>
+                    <h3>Semanas 12–13: IA con Rigor Físico</h3>
+                    <ul style="font-size: 20px;">
+                        <li><strong>Modelos Sustitutos (Surrogates):</strong> Redes Neuronales para aproximar sistemas complejos de ecuaciones.</li>
+                        <li><strong>Clasificación:</strong> Separación de señal y ruido de fondo en datos experimentales de partículas.</li>
+                        <li><strong>Active Learning:</strong> Guía estadística inteligente para corridas de simulación complejas.</li>
+                    </ul>
+                    <div class="ref-badge">
+                        <p><strong>Referencia:</strong> Acquaviva, V. (2023). <em>Machine Learning for Physics and Astronomy</em>.</p>
+                    </div>
+                </div>
+                <div class="tile" style="height: 350px; display: flex; flex-direction: column; justify-content: center;">
+                    <i class="fa-solid fa-brain" style="font-size: 80px; color: var(--accent); opacity: 0.2; margin-bottom: 20px;"></i>
+                    <p style="font-weight: 700; color: var(--text-main);">Utilidad Científica > Caja Negra</p>
+                    <p style="font-size: 16px;">Preservación de leyes fundamentales, interpretabilidad física e incertidumbre.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diapositiva 9: Caso de Estudio Evolutivo -->
+    <div class="slide-container">
+        <h2 class="slide-title">Caso de Estudio: Materia Oscura</h2>
+        <div class="content-area">
+            <p style="text-align: center; font-weight: 700;">Hebra conductora: Desarrollar la "Biblioteca Boltzmann" a estándar profesional.</p>
+            <div class="timeline-container">
+                <div class="timeline-node">
+                    <h4>Ingeniería</h4>
+                    <div class="node-dot"></div>
+                    <p>Solucionador numérico de la ec. de Lee-Weinberg.</p>
+                </div>
+                <div class="timeline-node">
+                    <h4>HPC</h4>
+                    <div class="node-dot"></div>
+                    <p>Escaneo masivo multinúcleo con Numba y MPI.</p>
+                </div>
+                <div class="timeline-node">
+                    <h4>Bayesiano</h4>
+                    <div class="node-dot"></div>
+                    <p>Muestreo estadístico con datos observacionales de Planck.</p>
+                </div>
+                <div class="timeline-node">
+                    <h4>Machine Learning</h4>
+                    <div class="node-dot"></div>
+                    <p>Red neuronal sustituta para inferencia instantánea.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diapositiva 10: Criterios de Evaluación -->
+    <div class="slide-container">
+        <h2 class="slide-title">Evaluación y Criterios</h2>
+        <div class="content-area">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Componente Evaluativo</th>
+                        <th>Porcentaje</th>
+                        <th>Entregable Esperado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Tareas de Software Engineering</td>
+                        <td>20%</td>
+                        <td>Paquete de Python modular, documentado y probado</td>
+                    </tr>
+                    <tr>
+                        <td>Prácticas de Desempeño (HPC)</td>
+                        <td>20%</td>
+                        <td>Kernels numéricos paralelizados acelerados</td>
+                    </tr>
+                    <tr>
+                        <td>Proyecto de Inferencia Bayesiana</td>
+                        <td>20%</td>
+                        <td>Muestreo e informe formal de ajuste de parámetros</td>
+                    </tr>
+                    <tr>
+                        <td>Mini-proyecto de Machine Learning</td>
+                        <td>10%</td>
+                        <td>Entrenamiento y validación de un modelo sustituto</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Proyecto de Investigación Final</strong></td>
+                        <td><strong>30%</strong></td>
+                        <td><strong>Artículo Científico Computacional Reproducible</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Diapositiva 11: Git y Entrega de Tareas (NUEVA DIAPOSITIVA) -->
+    <div class="slide-container">
+        <h2 class="slide-title">Git: El Único Canal de Entrega</h2>
+        <div class="content-area">
+            <div class="two-column" style="align-items: start;">
+                <div>
+                    <h3>¿Por qué Git?</h3>
+                    <p style="font-size: 20px; margin-bottom: 25px;">No es solo una herramienta de entrega, es el pilar de la <strong>reproducibilidad científica</strong> moderna. Permite auditar exactamente qué ecuaciones cambiaron, cuándo y por qué.</p>
+                    
+                    <h3>Mecánica de Evaluación del Curso</h3>
+                    <ul style="font-size: 19px; padding-left: 20px; line-height: 1.6;">
+                        <li>Cada tarea se entregará mediante un **Push** a un repositorio privado de GitHub asignado.</li>
+                        <li>Las entregas fuera de tiempo se miden por la marca de tiempo exacta del *commit* en el servidor.</li>
+                        <li>Se evaluará la limpieza del historial, el uso de ramas descriptivas y la presencia de entornos reproducibles en el repositorio.</li>
+                    </ul>
+                </div>
+                <div class="image-wrapper" style="height: 400px; margin-top: 20px;">
+                    <img src="http://googleusercontent.com/image_collection/image_retrieval/10813597218365495513" alt="Flujo de control de versiones con Git">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diapositiva 12: El Contexto Académico en México -->
+    <div class="slide-container">
+        <h2 class="slide-title">El Panorama Académico Mexicano</h2>
+        <div class="content-area">
+            <div class="two-column">
+                <div>
+                    <h3>Desafíos y Ventaja Competitiva</h3>
+                    <ul style="font-size: 19px; padding-left: 20px;">
+                        <li><strong>Exigencias del SNI:</strong> Mantener tasas de publicación científica competitivas requiere herramientas propias veloces, evitando cuellos de botella experimentales.</li>
+                        <li><strong>Restricciones de Hardware:</strong> Muchas universidades carecen de supercomputadoras masivas. Escribir código optimizado estira al máximo el hardware local disponible.</li>
+                        <li><strong>Redes Internacionales:</strong> La integración en colaboraciones de frontera (Lattice QCD, HEP) exige programar bajo estándares industriales compartidos.</li>
+                    </ul>
+                </div>
+                <div class="tile" style="background: #fdfaf0; border: 2px solid var(--accent);">
+                    <i class="fa-solid fa-graduation-cap" style="font-size: 48px; margin-bottom: 10px; color: var(--accent);"></i>
+                    <p style="font-weight: 700;">Diferenciación Profesional</p>
+                    <p style="font-size: 16px;">En las convocatorias de oposición nacionales, un perfil físico con dominio de arquitectura computacional y HPC destaca de inmediato sobre los enfoques tradicionales.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diapositiva 13: Utilidad en el Sector Privado -->
+    <div class="slide-container">
+        <h2 class="slide-title">La "Póliza de Seguro" Profesional</h2>
+        <div class="content-area">
+            <p style="color: var(--accent); margin-bottom: 25px; font-weight: 600; text-align: center;">Los egresados de física poseen habilidades analíticas de élite; el código estructurado es el puente para monetizarlas en cualquier industria.</p>
+            <div class="tiled-content">
+                <div class="tile">
+                    <i class="fa-solid fa-chart-pie" style="font-size: 32px; color: var(--accent); margin-bottom: 10px;"></i>
+                    <h3>Data Science & FinTech</h3>
+                    <p style="font-size: 16px;">La familiaridad con inferencia bayesiana robusta abre posiciones de ingeniería de datos complejas en hubs financieros nacionales.</p>
+                </div>
+                <div class="tile">
+                    <i class="fa-solid fa-terminal" style="font-size: 32px; color: var(--accent); margin-bottom: 10px;"></i>
+                    <h3>Administración HPC</h3>
+                    <p style="font-size: 16px;">Los sysadmins que gestionan clusters científicos entendiendo los modelos subyacentes de la física son extremadamente cotizados.</p>
+                </div>
+                <div class="tile">
+                    <i class="fa-solid fa-building-columns" style="font-size: 32px; color: var(--accent); margin-bottom: 10px;"></i>
+                    <h3>Políticas Públicas</h3>
+                    <p style="font-size: 16px;">El modelado matemático avanzado se utiliza cada vez más para simular optimización de recursos y dinámicas complejas en gobiernos locales.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diapositiva 14: Preguntas y Cierre -->
+    <div class="slide-container">
+        <div class="content-area" style="text-align: center;">
+            <h2 style="font-size: 64px; color: var(--accent);">¿Preguntas?</h2>
+            <p style="font-size: 28px; margin-top: 20px;">Métodos Computacionales Modernos para la Física</p>
+            
+            <div style="margin-top: 60px; display: inline-block; text-align: left; background: var(--bg-secondary); padding: 40px; border-radius: 15px;">
+                <p style="margin-bottom: 10px; color: var(--text-main); font-weight: 700;"><i class="fa-solid fa-user-doctor" style="color: var(--accent);"></i> Dr. Selim Gómez Ávila</p>
+                <p style="margin-bottom: 10px;"><i class="fa-solid fa-envelope" style="color: var(--accent);"></i> selim_gomez@uaeh.edu.mx</p>
+                <p style="margin: 0;"><i class="fa-solid fa-location-dot" style="color: var(--accent);"></i> UAEH, Depto. de Física y Matemáticas</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ==========================================
+   4. PRESENTATION ENGINE JAVASCRIPT
+   ========================================== */ -->
+<script>
+    let indiceActual = 0;
+    const diapositivas = document.querySelectorAll('.slide-container');
+    const contador = document.getElementById('contador-laminas');
+
+    function actualizarPresentacion() {
+        // Remueve la clase active de todas las láminas
+        diapositivas.forEach(slide => slide.classList.remove('active'));
+        
+        // Activa la lámina correspondiente
+        diapositivas[indiceActual].classList.add('active');
+        
+        // Actualiza el número de página en el widget flotante
+        contador.textContent = `${indiceActual + 1} / ${diapositivas.length}`;
+    }
+
+    function slideSiguiente() {
+        if (indiceActual < diapositivas.length - 1) {
+            indiceActual++;
+            actualizarPresentacion();
+        }
+    }
+
+    function slideAnterior() {
+        if (indiceActual > 0) {
+            indiceActual--;
+            actualizarPresentacion();
+        }
+    }
+
+    // Atajos de teclado estilo PDF Beamer / Google Slides
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowRight' || e.key === 'Space' || e.key === ' ') {
+            e.preventDefault();
+            slideSiguiente();
+        } else if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            slideAnterior();
+        } else if (e.key === 'f' || e.key === 'F') {
+            alternarPantallaCompleta();
+        }
+    });
+
+    // Control del modo Pantalla Completa
+    function alternarPantallaCompleta() {
+        if (!document.fullscreenElement) {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else if (document.documentElement.webkitRequestFullscreen) {
+                document.documentElement.webkitRequestFullscreen();
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    }
+
+    // Inicializa la numeración al cargar la página
+    actualizarPresentacion();
+</script>
+
+</body>
+</html>

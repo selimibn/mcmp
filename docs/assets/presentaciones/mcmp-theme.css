@@ -1,0 +1,72 @@
+/*
+/* @theme mcmp-theme
+/* @author Dr. Selim Gómez Ávila
+/* @meta color #2c3e50
+/* @meta background-color #fffbf0
+/* */
+
+@import 'default';
+
+section {
+  background-color: #fffbf0; /* Crema cálido */
+  color: #2c3e50; /* Oxford */
+  font-family: 'Lato', sans-serif;
+  padding: 40px 60px;
+  font-size: 24px;
+}
+
+h1, h2, h3 {
+  font-family: 'Merriweather', serif;
+  color: #2c3e50;
+  margin: 0;
+}
+
+h1 {
+  font-size: 50px;
+  color: #2c3e50;
+}
+
+h2 {
+  font-size: 38px;
+  border-bottom: 3px solid #d35400; /* Línea naranja tostado */
+  padding-bottom: 8px;
+  margin-bottom: 30px;
+}
+
+h3 {
+  color: #d35400;
+  font-size: 28px;
+}
+
+p, li {
+  color: #5d6d7e;
+  line-height: 1.5;
+}
+
+strong {
+  color: #d35400;
+}
+
+code {
+  background: #f4efe1;
+  color: #d35400;
+  font-family: monospace;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+footer {
+  font-size: 14px;
+  color: #5d6d7e;
+  position: absolute;
+  bottom: 20px;
+  left: 60px;
+}
+
+/* Diseños personalizados de columnas usando cuadrícula */
+.two-column {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
